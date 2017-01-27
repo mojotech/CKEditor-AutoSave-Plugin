@@ -18,34 +18,15 @@ module.exports = function(grunt) {
       },
       extensions: {
         src: [
-          'autosave/js/difflib.js',
-          'autosave/js/diffview.js',
-          'autosave/js/jsdiff.js',
           'autosave/js/moment.js',
           'autosave/js/lz-string.js'
           ],
         dest: 'autosave/js/extensions.min.js',
       }
-    },
-
-    // CSS Minify
-    cssmin: {
-      combine: {
-        files: {
-          'autosave/css/autosave.min.css': ['autosave/css/autosave.css']
-        }
-      }
-    },
-
+    }
   });
 
   // PLUGINS
   grunt.loadNpmTasks('grunt-yui-compressor');
-
-
-  grunt.registerTask('default', [
-    'min',
-    'cssmin'
-    ]);
-
+  grunt.registerTask('default', 'min');
 };

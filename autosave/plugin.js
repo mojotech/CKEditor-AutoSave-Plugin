@@ -11,39 +11,19 @@
 
   CKEDITOR.plugins.add("autosave", {
     lang: 'ca,cs,de,en,es,fr,ja,nl,pl,pt-br,ru,sk,sv,zh,zh-cn', // %REMOVE_LINE_CORE%
-    requires: 'notification',
     version: "0.17.1",
     init: function (editor) {
       // Default Config
       var defaultConfig = {
         delay: 10,
-        messageType: "notification",
         saveDetectionSelectors: "a[href^='javascript:__doPostBack'][id*='Save'],a[id*='Cancel']",
         saveOnDestroy: false,
         NotOlderThen: 1440,
         SaveKey: 'autosave_' + window.location + "_" + editor.id,
-        diffType: "sideBySide"
       };
 
       // Get Config & Lang
       var config = CKEDITOR.tools.extend(defaultConfig, editor.config.autosave || {}, true);
-
-      if (editor.plugins.textselection && config.messageType == "statusbar") {
-        config.messageType = "notification";
-      }
-
-      CKEDITOR.document.appendStyleSheet(CKEDITOR.getUrl(CKEDITOR.plugins.getPath('autosave') + 'css/autosave.min.css'));
-
-      editor.on('uiSpace', function(event) {
-        if (event.data.space == 'bottom' && config.messageType != null && config.messageType == "statusbar") {
-
-          event.data.html += '<div class="autoSaveMessage" unselectable="on"><div unselectable="on" id="'
-            + autoSaveMessageId(event.editor)
-            + '"class="hidden">'
-            + event.editor.lang.autosave.autoSaveMessage
-            + '</div></div>';
-        }
-      }, editor, null, 100);
 
       editor.on('instanceReady', function(){
         if (typeof (jQuery) === 'undefined') {
@@ -70,8 +50,6 @@
     config.saveDetectionSelectors != null ? config.saveDetectionSelectors : "a[href^='javascript:__doPostBack'][id*='Save'],a[id*='Cancel']";
 
     CKEDITOR.scriptLoader.load(CKEDITOR.getUrl(CKEDITOR.plugins.getPath('autosave') + 'js/extensions.min.js'), function() {
-      GenerateAutoSaveDialog(editorInstance, config, autoSaveKey);
-
       CheckForAutoSavedContent(editorInstance, autoSaveKey, notOlderThen);
     });
 
@@ -132,77 +110,6 @@
     }
   }
 
-  function GenerateAutoSaveDialog(editorInstance, config, autoSaveKey) {
-    CKEDITOR.dialog.add('autosaveDialog', function() {
-      return {
-        title: editorInstance.lang.autosave.title,
-        minHeight: 155,
-        height: 300,
-        width: 800,
-        onShow: function() {
-          RenderDiff(this, editorInstance, autoSaveKey);
-        },
-        onOk: function() {
-          if (localStorage.getItem(autoSaveKey)) {
-            var jsonSavedContent = LoadData(autoSaveKey);
-            editorInstance.loadSnapshot(jsonSavedContent.data);
-
-            RemoveStorage(autoSaveKey, editorInstance);
-          }
-        },
-        onCancel: function() {
-          RemoveStorage(autoSaveKey, editorInstance);
-        },
-        contents: [
-          {
-            label: '',
-            id: 'general',
-            elements: [
-              {
-                type: 'radio',
-                id: 'diffType',
-                label: editorInstance.lang.autosave.diffType,
-                items: [[editorInstance.lang.autosave.sideBySide, 'sideBySide'], [editorInstance.lang.autosave.inline, 'inline']],
-                'default': config.diffType,
-                onClick: function() {
-                  RenderDiff(this._.dialog, editorInstance, autoSaveKey);
-                }
-              }, {
-                type: 'html',
-                id: 'diffContent',
-                html: ''
-              }
-            ]
-          }
-        ],
-        buttons: [
-          {
-            id: 'ok',
-            type: 'button',
-            label: editorInstance.lang.autosave.ok,
-            'class': 'cke_dialog_ui_button_ok cke_dialog_autosave_ok',
-            onClick: function(evt) {
-              var dialog = evt.data.dialog;
-              if (dialog.fire('ok', { hide: true }).hide !== false)
-                dialog.hide();
-            }
-          },
-          {
-            id: 'cancel',
-            type: 'button',
-            label: editorInstance.lang.autosave.no,
-            'class': 'cke_dialog_ui_button_cancel',
-            onClick: function(evt) {
-              var dialog = evt.data.dialog;
-              if (dialog.fire('cancel', { hide: true }).hide !== false)
-                dialog.hide();
-            }
-          }
-        ]
-      };
-    });
-  }
-
   function CheckForAutoSavedContent(editorInstance, autoSaveKey, notOlderThen) {
     // Checks If there is data available and load it
     if (localStorage.getItem(autoSaveKey)) {
@@ -226,13 +133,8 @@
         return;
       }
 
-      var confirmMessage = editorInstance.lang.autosave.loadSavedContent.replace("{0}", moment(autoSavedContentDate).locale(editorInstance.config.language).format(editorInstance.lang.autosave.dateFormat));
-      if (confirm(confirmMessage)) {
-        // Open DIFF Dialog
-        editorInstance.openDialog('autosaveDialog');
-      } else {
-        RemoveStorage(autoSaveKey, editorInstance);
-      }
+      editorInstance.loadSnapshot(LoadData(autoSaveKey).data);
+      RemoveStorage(autoSaveKey, editorInstance);
     }
   }
 
@@ -243,7 +145,6 @@
 
   function SaveData(autoSaveKey, editorInstance, config) {
     var compressedJSON = LZString.compressToUTF16(JSON.stringify({ data: editorInstance.getData(), saveTime: new Date() }));
-
     var quotaExceeded = false;
 
     try {
@@ -251,33 +152,7 @@
     } catch (e) {
       quotaExceeded = isQuotaExceeded(e);
       if (quotaExceeded) {
-        console.log(editorInstance.lang.autosave.localStorageFull);
-      }
-    }
-
-    if (quotaExceeded) {
-      var notificationError = new CKEDITOR.plugins.notification(editorInstance, { message: editorInstance.lang.autosave.localStorageFull, type: 'warning' });
-      notificationError.show();
-    } else {
-      var messageType = config.messageType != null ? config.messageType : "notification";
-
-      if (editorInstance.plugins.textselection && messageType == "statusbar") {
-        messageType = "notification";
-      }
-
-      if (messageType == "statusbar") {
-        var autoSaveMessage = document.getElementById(autoSaveMessageId(editorInstance));
-
-        if (autoSaveMessage) {
-          autoSaveMessage.className = "show";
-
-          setTimeout(function () {
-            autoSaveMessage.className = "hidden";
-          }, 2000);
-        }
-      } else if (messageType == "notification") {
-        var notification = new CKEDITOR.plugins.notification(editorInstance, { message: editorInstance.lang.autosave.autoSaveMessage, type: 'success' });
-        notification.show();
+        console.warn(editorInstance.lang.autosave.localStorageFull);
       }
     }
   }
@@ -288,25 +163,6 @@
     }
 
     localStorage.removeItem(autoSaveKey);
-  }
-
-  function RenderDiff(dialog, editorInstance, autoSaveKey) {
-    var jsonSavedContent = LoadData(autoSaveKey);
-
-    var base = difflib.stringAsLines(editorInstance.getData());
-    var newtxt = difflib.stringAsLines(jsonSavedContent.data);
-    var sm = new difflib.SequenceMatcher(base, newtxt);
-    var opcodes = sm.get_opcodes();
-
-    dialog.getContentElement('general', 'diffContent').getElement().setHtml('<div class="diffContent">' + diffview.buildView({
-      baseTextLines: base,
-      newTextLines: newtxt,
-      opcodes: opcodes,
-      baseTextName: editorInstance.lang.autosave.loadedContent,
-      newTextName: editorInstance.lang.autosave.autoSavedContent + (moment(jsonSavedContent.saveTime).locale(editorInstance.config.language).format(editorInstance.lang.autosave.dateFormat)) + '\'',
-      contextSize: 3,
-      viewType: dialog.getContentElement('general', 'diffType').getValue() == "inline" ? 1 : 0
-    }).outerHTML + '</div>');
   }
 
   function isQuotaExceeded(e) {
