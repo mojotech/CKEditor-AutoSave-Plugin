@@ -16,7 +16,7 @@ module.exports = function(grunt) {
       options: {
         report: false
       },
-      difflib: {
+      extensions: {
         src: [
           'autosave/js/difflib.js',
           'autosave/js/diffview.js',
