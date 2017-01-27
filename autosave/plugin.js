@@ -49,7 +49,17 @@
     var saveDetectionSelectors =
     config.saveDetectionSelectors != null ? config.saveDetectionSelectors : "a[href^='javascript:__doPostBack'][id*='Save'],a[id*='Cancel']";
 
-    CKEDITOR.scriptLoader.load(CKEDITOR.getUrl(CKEDITOR.plugins.getPath('autosave') + 'js/extensions.min.js'), function() {
+    var cdnScripts = [];
+
+    if(typeof LZString === 'undefined') {
+      cdnScripts.push('https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js');
+    }
+
+    if(typeof moment === 'undefined') {
+      cdnScripts.push('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js');
+    }
+
+    CKEDITOR.scriptLoader.load(cdnScripts, function() {
       CheckForAutoSavedContent(editorInstance, autoSaveKey, notOlderThen);
     });
 

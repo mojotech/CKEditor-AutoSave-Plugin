@@ -11,10 +11,5 @@
     "Autosave",
     "localStorage",
     "html5"
-  ],
-  "devDependencies": {
-    "grunt": "~0.4.2",
-    "grunt-contrib-watch": "~0.5.3",
-    "grunt-yui-compressor": "~0.3.0"
-  }
+  ]
 }
