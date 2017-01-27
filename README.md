@@ -10,9 +10,6 @@ The Plugin saves the content every 25 seconds (can be defined in the Config - `a
 
 After content from the editor has been saved, if that page is loaded again then the saved content will be automatically injected into the editor for you.
 
-
-![Screenshot](http://www.watchersnet.de/Portals/0/screenshots/dnn/AutoSaveDiffDialog.png)
-
 ####License
 
 Licensed under the terms of the MIT License.
