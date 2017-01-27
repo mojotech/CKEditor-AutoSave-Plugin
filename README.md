@@ -1,14 +1,14 @@
 CKEditor-AutoSave-Plugin
 ========================
 
-Auto Save Plugin for the CKEditor which automatically saves the content (via HTML5 LocalStorage) temporarly (for example when a login session times out). 
+Auto Save Plugin for the CKEditor which automatically saves the content (via HTML5 LocalStorage) temporarly (for example when a login session times out).
 And after the content is saved it can be restored when the editor is reloaded.
 
 ####How the Plugin works
 
-The Plugin saves the content every 25 seconds (can be defined in the Config - autosave_delay), but only when the content has changed.
+The Plugin saves the content every 25 seconds (can be defined in the Config - `autosave_delay`), but only when the content has changed.
 
-And when the Editor Page is reloaded and auto saved content is found and its different from the content loaded with the editor the user will be asked if the auto saved content should be loaded instead.
+After content from the editor has been saved, if that page is loaded again then the saved content will be automatically injected into the editor for you.
 
 
 ![Screenshot](http://www.watchersnet.de/Portals/0/screenshots/dnn/AutoSaveDiffDialog.png)
@@ -30,7 +30,7 @@ config.extraPlugins = 'autosave';
 
 
 ````js
-config.autosave = { 
+config.autosave = {
       // Auto save Key - The Default autosavekey can be overridden from the config ...
       Savekey : "autosaveKey",
 
@@ -43,21 +43,7 @@ config.autosave = {
 
       // Setting to set the Save button to inform the plugin when the content is saved by the user and doesn't need to be stored temporary ...
       saveDetectionSelectors : "a[href^='javascript:__doPostBack'][id*='Save'],a[id*='Cancel']",
-
-      // Notification Type - Setting to set the if you want to show the "Auto Saved" message, and if yes you can show as Notification or as Message in the Status bar (Default is "notification")
-      messageType : "notification",
-
-     // Show in the Status Bar
-     //messageType : "statusbar",
-
-     // Show no Message
-     //messageType : "no",
-
      // Delay
      delay : 10,
-
-     // The Default Diff Type for the Compare Dialog, you can choose between "sideBySide" or "inline". Default is "sideBySide"
-     diffType : "sideBySide"     
 };
 ````
-
